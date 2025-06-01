@@ -1243,6 +1243,40 @@
         const youtubeContainer = document.getElementById('youtubeContainer');
         const taskError = document.getElementById('taskError');
 
+        // Load saved tasks on page load
+        function loadTasks() {
+            const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            taskList.innerHTML = ''; // Clear existing tasks
+            savedTasks.forEach(taskText => {
+                const li = document.createElement('li');
+                li.className = 'task-block';
+                li.textContent = taskText;
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-task-btn';
+                delBtn.textContent = '×';
+                delBtn.onclick = function () {
+                    li.remove();
+                    updateYoutubeMargin();
+                    // Save tasks after deletion
+                    saveTasks();
+                    // Hide error if now allowed
+                    if (countTaskLinesWithNewTask() <= 3) taskError.style.display = 'none';
+                };
+                li.appendChild(delBtn);
+                taskList.appendChild(li);
+            });
+            updateYoutubeMargin();
+        }
+
+        // Save tasks to localStorage
+        function saveTasks() {
+            const tasks = Array.from(taskList.children).map(task => task.textContent.slice(0, -1)); // Remove the × character
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // Load tasks when the page loads
+        window.addEventListener('DOMContentLoaded', loadTasks);
+
         function countTaskLinesWithNewTask() {
             // Simulate adding a new task and count unique offsetTop values (lines)
             const tasks = Array.from(taskList.children);
@@ -1313,6 +1347,8 @@
                 delBtn.onclick = function () {
                     li.remove();
                     updateYoutubeMargin();
+                    // Save tasks after deletion
+                    saveTasks();
                     // Hide error if now allowed
                     if (countTaskLinesWithNewTask() <= 3) taskError.style.display = 'none';
                 };
@@ -1320,6 +1356,8 @@
                 taskList.appendChild(li);
                 taskInput.value = '';
                 updateYoutubeMargin();
+                // Save tasks after adding new task
+                saveTasks();
             }
         };
         // Update margin on load and when tasks are removed
