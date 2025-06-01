@@ -1276,6 +1276,10 @@
 
         // Load tasks when the page loads
         window.addEventListener('DOMContentLoaded', loadTasks);
+        window.addEventListener('load', loadTasks);
+
+        // Also save tasks when the page is about to unload
+        window.addEventListener('beforeunload', saveTasks);
 
         function countTaskLinesWithNewTask() {
             // Simulate adding a new task and count unique offsetTop values (lines)
