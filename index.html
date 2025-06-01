@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Productivity Website</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f6fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .new-note-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #333;
+            transition: color 0.2s;
+            z-index: 100;
+        }
+
+        .new-note-btn:hover {
+            color: #666;
+        }
+
+        #noteArea {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.5;
+            box-sizing: border-box;
+            display: none;
+        }
+
+        .note-name {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-size: 20px;
+            color: #666;
+            z-index: 100;
+            display: none;
+            font-weight: bold;
+            margin-left: 0;
+        }
+
+        .saved-notes-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #333;
+            transition: color 0.2s;
+            z-index: 100;
+        }
+
+        .saved-notes-btn:hover {
+            color: #666;
+        }
+
+        .saved-notes-list {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            transform: translateX(80px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .saved-notes-list.show {
+            display: block;
+        }
+
+        .saved-note-item {
+            padding: 8px 12px;
+            cursor: default;
+            border-radius: 4px;
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .note-title {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .note-title:focus {
+            outline: none;
+            background: white;
+        }
+
+        .delete-note-btn {
+            margin-left: 10px;
+            color: #999;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 5px;
+            border: none;
+            background: none;
+            display: inline-block;
+        }
+
+        .delete-note-btn:hover {
+            color: #ff4444;
+        }
+
+        .welcome-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #333;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .note-area {
+            width: 100%;
+            height: 100%;
+            min-height: unset;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 8px 0 0 4px;
+            box-sizing: border-box;
+            display: block;
+            background: transparent;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+            caret-color: black;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .note-area::selection {
+            background: #b3d4fc;
+        }
+
+        /* Ensure consistent text and cursor size */
+        .note-area,
+        .note-area * {
+            font-size: 16px !important;
+            line-height: 1.5 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        }
+
+        /* Remove any inherited styles that might affect cursor */
+        .note-area br {
+            display: inline;
+            content: "";
+            margin: 0;
+            padding: 0;
+        }
+
+        .bottom-controls {
+            width: 100%;
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px 0 0;
+            box-sizing: border-box;
+            justify-content: flex-end;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+
+        .saved-notes-btn {
+            position: static;
+            margin-left: 10px;
+        }
+
+        .new-note-btn {
+            position: static;
+            margin-left: 10px;
+        }
+
+        .note-name {
+            position: static;
+            margin-right: auto;
+            cursor: text;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 20px;
+        }
+
+        .note-name:focus {
+            outline: none;
+            background: #f8f9fa;
+        }
+
+        .saved-notes-list {
+            bottom: 70px;
+            right: 20px;
+            left: auto;
+        }
+
+        .page-container {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            margin-top: 0;
+            height: 100vh;
+        }
+
+        .resizer {
+            display: none !important;
+        }
+
+        .page {
+            background: #fff;
+            width: 50vw;
+            min-width: 200px;
+            max-width: 80vw;
+            height: calc(100vh + 2rem);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+            border-radius: 8px;
+            padding: 60px 20px 40px 20px;
+            box-sizing: border-box;
+            margin-left: 0;
+            margin-top: -1rem;
+            margin-bottom: -1rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            width: 50vw;
+            min-width: 200px;
+            max-width: 80vw;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f5f6fa;
+            min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .right-panel::before {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-51%);
+            width: 120%;
+            height: 400px;
+            background-image: url('9955684-pixel-art-game-cena-na-neve-com-casa-de-madeira-pinheiros-ponte-lago-e-nuvens-fundo-8-bit-vetor-removebg.png');
+            background-size: contain;
+            background-position: bottom center;
+            background-repeat: no-repeat;
+            opacity: 1;
+            z-index: 0;
+        }
+
+        .right-top,
+        .right-bottom {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 24px 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .right-top {
+            flex: 1;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .right-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            min-height: 350px;
+        }
+
+        .timer-controls,
+        .stopwatch-controls {
+            margin-bottom: 8px;
+        }
+
+        .timer-display,
+        .stopwatch-display {
+            font-size: 2em;
+            margin-bottom: 12px;
+        }
+
+        #taskForm {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        #taskList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            padding-left: 0;
+            margin-top: 0;
+            max-height: calc(3 * 44px + 2 * 12px);
+            /* 3 lines max, 44px block height, 12px gap */
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .task-block {
+            display: flex;
+            align-items: center;
+            background: #e9f0ff;
+            border-radius: 18px;
+            padding: 8px 18px 8px 14px;
+            font-size: 1.1em;
+            color: #0a2342;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            position: relative;
+            margin-bottom: 0;
+        }
+
+        .delete-task-btn {
+            background: none;
+            border: none;
+            color: #185adb;
+            font-size: 1.2em;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .delete-task-btn:hover {
+            background: #dbeafe;
+        }
+
+        .timer-stopwatch-card {
+            background: #e9f0ff;
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin: 24px auto 0 auto;
+            padding: 24px 24px 16px 24px;
+            max-width: 480px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ts-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .ts-tab {
+            border: none;
+            background: none;
+            font-size: 1.2em;
+            padding: 8px 24px;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ts-tab.active {
+            background: #b3ccff;
+            color: #0a2342;
+            font-weight: bold;
+        }
+
+        .ts-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ts-display {
+            font-size: 3em;
+            color: #0a2342;
+            margin: 32px 0 24px 0;
+        }
+
+        .ts-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .ts-controls input[type=number] {
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: 1px solid #b3ccff;
+            padding: 4px 8px;
+            outline: none;
+        }
+
+        .ts-controls button {
+            font-size: 1.2em;
+            border: none;
+            background: #185adb;
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ts-controls button:hover {
+            background: #0a2342;
+        }
+
+        .ts-card-minimal {
+            background: none;
+            border-radius: 16px;
+            margin: 32px auto 0 auto;
+            padding: 16px 0 0 0;
+            max-width: 400px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ts-switcher-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            margin-left: -32px;
+        }
+
+        .ts-switcher {
+            border: none;
+            background: #f0f0f0;
+            font-size: 1em;
+            padding: 4px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ts-switcher.active {
+            background: #dbeafe;
+            color: #0a2342;
+            font-weight: bold;
+        }
+
+        .ts-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .ts-number {
+            font-size: 6em;
+            color: #0a2342;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .ts-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ts-icon-btn {
+            font-size: 1.2em;
+            border: none;
+            background: #f0f0f0;
+            color: #0a2342;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ts-icon-btn:hover {
+            background: #dbeafe;
+        }
+
+        /* Remove border-bottom on homescreen (no notes) */
+        .page.no-notes .bottom-controls {
+            border-bottom: none;
+        }
+
+        #youtubeContainer {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: static;
+            transition: margin-top 0.2s;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .video-slider {
+            width: 420px;
+            height: 236px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .video-slides {
+            display: flex;
+            width: 300%;
+            height: 100%;
+        }
+
+        .video-slide {
+            width: 33.333%;
+            height: 100%;
+            flex-shrink: 0;
+        }
+
+        .video-slide iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+
+        .slider-nav {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .slider-dot.active {
+            background: white;
+        }
+
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: all 0.2s;
+        }
+
+        .slider-arrow:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .slider-arrow[style*="opacity: 0"] {
+            cursor: default;
+        }
+
+        .slider-prev {
+            left: 10px;
+        }
+
+        .slider-next {
+            right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <div class="page">
+            <div class="bottom-controls">
+                <div class="note-name" id="noteName" contenteditable="true">Untitled Note</div>
+                <div class="saved-notes-container" style="position: relative; display: inline-block;">
+                    <button class="saved-notes-btn" onclick="toggleSavedNotes()">📚</button>
+                    <div class="saved-notes-list" id="savedNotesList"></div>
+                </div>
+                <button class="new-note-btn" onclick="newFile()">+</button>
+            </div>
+            <div id="noteArea" contenteditable="true" class="note-area" placeholder="Start typing your notes here...">
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="ts-card-minimal">
+                <div class="ts-switcher-row">
+                    <button class="ts-switcher active" id="tabTimer">Timer</button>
+                    <button class="ts-switcher" id="tabStopwatch">Stopwatch</button>
+                </div>
+                <div class="ts-content" id="timerContent">
+                    <div class="ts-row">
+                        <span class="ts-number" id="timerDisplay" tabindex="0" title="Click to set time">00:00</span>
+                        <div class="ts-icons">
+                            <button id="resetTimerBtn" class="ts-icon-btn" title="Reset">⟲</button>
+                            <button id="startPauseTimerBtn" class="ts-icon-btn" title="Start/Pause">▶</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ts-content" id="stopwatchContent" style="display:none;">
+                    <div class="ts-row">
+                        <span class="ts-number" id="stopwatchDisplay">00:00</span>
+                        <div class="ts-icons">
+                            <button id="resetStopwatchBtn" class="ts-icon-btn" title="Reset">⟲</button>
+                            <button id="startPauseStopwatchBtn" class="ts-icon-btn" title="Start/Pause">▶</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-bottom" id="addTaskSection">
+                <h3>Add Task</h3>
+                <form id="taskForm" style="position: relative; display: flex; align-items: center; gap: 8px;">
+                    <input type="text" id="taskInput" placeholder="New task... (30 letter max)" maxlength="30" required>
+                    <button type="submit">Add</button>
+                    <span id="taskError" style="display:none; color:#b00; font-size:0.9em; margin-left:8px;">Finish
+                        earlier tasks first</span>
+                </form>
+                <ul id="taskList"></ul>
+                <div id="youtubeContainer">
+                    <div class="video-slider">
+                        <div class="video-slides">
+                            <div class="video-slide">
+                                <iframe src="https://www.youtube.com/embed/oCaOSz13h_o" allowfullscreen></iframe>
+                            </div>
+                            <div class="video-slide">
+                                <iframe src="https://www.youtube.com/embed/8kBlKM71pjc" allowfullscreen></iframe>
+                            </div>
+                            <div class="video-slide">
+                                <iframe src="https://www.youtube.com/embed/cI35HCPro-s" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                        <div class="slider-nav">
+                            <div class="slider-dot active"></div>
+                            <div class="slider-dot"></div>
+                            <div class="slider-dot"></div>
+                        </div>
+                        <button class="slider-arrow slider-prev">❮</button>
+                        <button class="slider-arrow slider-next">❯</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const noteArea = document.getElementById('noteArea');
+        const noteNameElement = document.getElementById('noteName');
+        const savedNotesList = document.getElementById('savedNotesList');
+        const savedNotesBtn = document.querySelector('.saved-notes-btn');
+        let currentNoteId = null;
+
+        // Helper: Place caret at the very start of noteArea
+        function placeCaretAtStart(el) {
+            el.focus();
+            if (el.innerHTML === '' || el.innerHTML === '<br>') el.innerHTML = '<br>';
+            const range = document.createRange();
+            range.setStart(el.childNodes[0], 0);
+            range.collapse(true);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        // History management
+        let history = [];
+        let historyIndex = -1;
+        let isUndoRedo = false;
+
+        function saveToHistory() {
+            if (isUndoRedo) return;
+
+            history = history.slice(0, historyIndex + 1);
+            history.push(noteArea.innerHTML);
+            historyIndex++;
+
+            if (history.length > 100) {
+                history.shift();
+                historyIndex--;
+            }
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                isUndoRedo = true;
+                historyIndex--;
+                noteArea.innerHTML = history[historyIndex];
+                isUndoRedo = false;
+
+                const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+                if (savedNotes[currentNoteId]) {
+                    savedNotes[currentNoteId].content = noteArea.innerHTML;
+                    localStorage.setItem('notes', JSON.stringify(savedNotes));
+                }
+            }
+        }
+
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                isUndoRedo = true;
+                historyIndex++;
+                noteArea.innerHTML = history[historyIndex];
+                isUndoRedo = false;
+
+                const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+                if (savedNotes[currentNoteId]) {
+                    savedNotes[currentNoteId].content = noteArea.innerHTML;
+                    localStorage.setItem('notes', JSON.stringify(savedNotes));
+                }
+            }
+        }
+
+        function updateUI() {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            const hasNotes = Object.keys(savedNotes).length > 0;
+            // Show homepage if no note is selected
+            if (currentNoteId === null) {
+                noteArea.style.display = 'none';
+                noteNameElement.style.display = 'none';
+                let notepadText = document.getElementById('notepadText');
+                const pageDiv = document.querySelector('.page');
+                if (!notepadText) {
+                    notepadText = document.createElement('div');
+                    notepadText.id = 'notepadText';
+                    notepadText.textContent = 'Notepad';
+                    notepadText.style.position = 'absolute';
+                    notepadText.style.top = '50%';
+                    notepadText.style.left = '50%';
+                    notepadText.style.transform = 'translate(-50%, -50%)';
+                    notepadText.style.fontSize = '2.5em';
+                    notepadText.style.color = '#333';
+                    notepadText.style.fontWeight = 'bold';
+                    notepadText.style.textAlign = 'center';
+                    notepadText.style.pointerEvents = 'none';
+                    pageDiv.appendChild(notepadText);
+                }
+                pageDiv.classList.add('no-notes');
+                return;
+            }
+            // Otherwise, show note area and note name if there are notes
+            noteArea.style.display = hasNotes ? 'block' : 'none';
+            noteNameElement.style.display = hasNotes ? 'block' : 'none';
+            // Remove homepage if present
+            let notepadText = document.getElementById('notepadText');
+            const pageDiv = document.querySelector('.page');
+            if (notepadText) notepadText.remove();
+            pageDiv.classList.remove('no-notes');
+        }
+
+        function loadNote() {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            const hasNotes = Object.keys(savedNotes).length > 0;
+
+            if (hasNotes) {
+                const currentNote = savedNotes[currentNoteId] || {
+                    content: '',
+                    name: 'Untitled Note',
+                    lastModified: Date.now()
+                };
+
+                noteArea.innerHTML = currentNote.content;
+                noteNameElement.textContent = currentNote.name;
+
+                history = [currentNote.content];
+                historyIndex = 0;
+            }
+
+            updateUI();
+            setTimeout(() => {
+                if (noteArea.style.display !== 'none') placeCaretAtStart(noteArea);
+            }, 0);
+
+            afterNoteLoad();
+        }
+
+        // On first load, always show homepage (no note selected)
+        currentNoteId = null;
+        noteArea.innerHTML = '';
+        noteNameElement.textContent = 'Untitled Note';
+        history = [];
+        historyIndex = -1;
+        noteArea.setAttribute('contenteditable', 'false');
+        updateUI();
+
+        // Google Docs-like auto-scroll: scroll caret into view
+        function scrollCaretIntoView() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                const areaRect = noteArea.getBoundingClientRect();
+                // Only scroll down if caret is below the visible area
+                const lineHeight = parseInt(window.getComputedStyle(noteArea).lineHeight);
+                const bottomThreshold = areaRect.bottom - (lineHeight * 4);
+                if (rect.bottom > bottomThreshold) {
+                    noteArea.scrollTop += rect.bottom - bottomThreshold;
+                }
+                // Do not scroll up if caret is above
+            }
+        }
+
+        // Add auto-scroll functionality
+        noteArea.addEventListener('input', () => {
+            saveToHistory();
+            autoSave();
+            updateUI();
+            scrollCaretIntoView();
+        });
+
+        // Handle keyboard shortcuts like Google Docs
+        document.addEventListener('keydown', (e) => {
+            // Only trigger shortcuts when noteArea is focused
+            if (document.activeElement !== noteArea) return;
+
+            // Bold toggle with Command+Shift+D
+            if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                document.execCommand('bold', false, null);
+                return;
+            }
+
+            // Undo with Command+Z
+            if (e.metaKey && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+                return;
+            }
+
+            // Redo with Command+Shift+Z
+            if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                redo();
+                return;
+            }
+
+            // Handle Enter key like Google Docs
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.execCommand('insertParagraph');
+                scrollCaretIntoView();
+            }
+        });
+
+        // Remove scroll-to-bottom on focus (not Google Docs-like)
+        noteArea.addEventListener('focus', () => {
+            scrollCaretIntoView();
+        });
+
+        // Handle paste to maintain formatting
+        noteArea.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+
+        function newFile() {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            const noteName = prompt('Enter a name for your note:', 'Untitled Note');
+            if (noteName !== null) {
+                currentNoteId = Date.now().toString();
+                noteArea.innerHTML = '';
+                noteNameElement.textContent = noteName;
+                history = [''];
+                historyIndex = 0;
+                noteArea.setAttribute('contenteditable', 'true');
+
+                // Save the new note
+                const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+                savedNotes[currentNoteId] = {
+                    content: '',
+                    name: noteName,
+                    lastModified: Date.now()
+                };
+                localStorage.setItem('notes', JSON.stringify(savedNotes));
+                updateUI();
+                setTimeout(() => {
+                    if (noteArea.style.display !== 'none') placeCaretAtStart(noteArea);
+                }, 0);
+            }
+
+            afterNoteLoad();
+        }
+
+        function toggleSavedNotes() {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            const hasNotes = Object.keys(savedNotes).length > 0;
+
+            if (!hasNotes) {
+                return;
+            }
+
+            savedNotesList.innerHTML = '';
+
+            Object.entries(savedNotes)
+                .sort((a, b) => b[1].lastModified - a[1].lastModified)
+                .forEach(([id, note]) => {
+                    const noteItem = document.createElement('div');
+                    noteItem.className = 'saved-note-item';
+
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'note-title';
+                    titleSpan.textContent = note.name;
+                    titleSpan.onclick = () => loadSavedNote(id);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-note-btn';
+                    deleteBtn.textContent = '×';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Are you sure you want to delete "${note.name}"?`)) {
+                            deleteNote(id);
+                        }
+                    };
+
+                    noteItem.appendChild(titleSpan);
+                    noteItem.appendChild(deleteBtn);
+                    savedNotesList.appendChild(noteItem);
+                });
+
+            savedNotesList.classList.toggle('show');
+        }
+
+        function deleteNote(id) {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            delete savedNotes[id];
+            localStorage.setItem('notes', JSON.stringify(savedNotes));
+
+            // If we deleted the current note, go to homepage and do not reload notes
+            if (id === currentNoteId) {
+                currentNoteId = null;
+                noteArea.innerHTML = '';
+                noteNameElement.textContent = 'Untitled Note';
+                history = [];
+                historyIndex = -1;
+                noteArea.setAttribute('contenteditable', 'false');
+                updateUI();
+                // Always hide the saved notes popup
+                savedNotesList.classList.remove('show');
+                return;
+            }
+
+            // Refresh the notes list and update UI if not deleting current note
+            toggleSavedNotes();
+            updateUI();
+        }
+
+        function loadSavedNote(id) {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            if (savedNotes[id]) {
+                currentNoteId = id;
+                const note = savedNotes[id];
+                noteArea.innerHTML = note.content;
+                noteNameElement.textContent = note.name;
+                history = [note.content];
+                historyIndex = 0;
+                noteArea.setAttribute('contenteditable', 'true');
+                savedNotesList.classList.remove('show');
+                updateUI();
+                setTimeout(() => {
+                    if (noteArea.style.display !== 'none') placeCaretAtStart(noteArea);
+                }, 0);
+            }
+
+            afterNoteLoad();
+        }
+
+        // Close saved notes list when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.saved-notes-btn') && !e.target.closest('.saved-notes-list')) {
+                savedNotesList.classList.remove('show');
+            }
+        });
+
+        // Add autosave functionality
+        function autoSave() {
+            const savedNotes = JSON.parse(localStorage.getItem('notes') || '{}');
+            if (savedNotes[currentNoteId]) {
+                savedNotes[currentNoteId] = {
+                    content: noteArea.innerHTML,
+                    name: noteNameElement.textContent,
+                    lastModified: Date.now()
+                };
+                localStorage.setItem('notes', JSON.stringify(savedNotes));
+            }
+        }
+
+        // Set up autosave interval
+        setInterval(autoSave, 1000);
+
+        // Extra safety: Save on page unload and when tab is hidden
+        window.addEventListener('beforeunload', autoSave);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') autoSave();
+        });
+
+        // Handle title editing
+        noteNameElement.addEventListener('blur', () => {
+            const newName = noteNameElement.textContent.trim();
+            if (!newName) {
+                noteNameElement.textContent = 'Untitled Note';
+            }
+            autoSave();
+        });
+
+        noteNameElement.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                noteNameElement.blur();
+            }
+        });
+
+        function scrollCaretUnderBar() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            const barHeight = 60;
+            // Only scroll if caret is out of view
+            if (rect.top < barHeight + 20 || rect.bottom > window.innerHeight - 20) {
+                // Create a temporary span at the caret
+                const tempSpan = document.createElement('span');
+                tempSpan.textContent = '\u200b';
+                range.insertNode(tempSpan);
+                tempSpan.scrollIntoView({ block: 'center', behavior: 'auto' });
+                // Clean up
+                range.setStartAfter(tempSpan);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                tempSpan.parentNode.removeChild(tempSpan);
+            }
+        }
+
+        // On load, place caret and scroll
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                placeCaretAtStart(document.getElementById('noteArea'));
+                scrollCaretUnderBar();
+            }, 0);
+        });
+
+        // On note load/create, also place caret and scroll
+        function afterNoteLoad() {
+            setTimeout(function () {
+                placeCaretAtStart(document.getElementById('noteArea'));
+                scrollCaretUnderBar();
+            }, 0);
+        }
+
+        // Attach scroll on input, keyup, click
+        document.getElementById('noteArea').addEventListener('input', scrollCaretUnderBar);
+        document.getElementById('noteArea').addEventListener('keyup', scrollCaretUnderBar);
+        document.getElementById('noteArea').addEventListener('click', scrollCaretUnderBar);
+
+        // --- Timer/Stopwatch Tabs ---
+        const tabTimer = document.getElementById('tabTimer');
+        const tabStopwatch = document.getElementById('tabStopwatch');
+        const timerContent = document.getElementById('timerContent');
+        const stopwatchContent = document.getElementById('stopwatchContent');
+        tabTimer.onclick = function () {
+            tabTimer.classList.add('active');
+            tabStopwatch.classList.remove('active');
+            timerContent.style.display = '';
+            stopwatchContent.style.display = 'none';
+            // Auto-pause stopwatch when switching to timer
+            clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+            stopwatchRunning = false;
+            startPauseStopwatchBtn.textContent = '▶';
+        };
+        tabStopwatch.onclick = function () {
+            tabStopwatch.classList.add('active');
+            tabTimer.classList.remove('active');
+            timerContent.style.display = 'none';
+            stopwatchContent.style.display = '';
+            // Auto-pause timer when switching to stopwatch
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerRunning = false;
+            startPauseTimerBtn.textContent = '▶';
+        };
+
+        // --- Timer Logic ---
+        let timerInterval = null;
+        let timerTimeLeft = 0;
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startPauseTimerBtn = document.getElementById('startPauseTimerBtn');
+        const resetTimerBtn = document.getElementById('resetTimerBtn');
+        timerDisplay.onclick = function () {
+            const input = prompt('Set timer (seconds):', timerTimeLeft || '60');
+            if (input !== null && !isNaN(input) && Number(input) >= 0) {
+                timerTimeLeft = parseInt(input, 10);
+                updateTimerDisplay();
+            }
+        };
+        function updateTimerDisplay() {
+            const min = String(Math.floor(timerTimeLeft / 60)).padStart(2, '0');
+            const sec = String(timerTimeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `${min}:${sec}`;
+        }
+        let timerRunning = false;
+        startPauseTimerBtn.onclick = function () {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerRunning = false;
+                startPauseTimerBtn.textContent = '▶';
+            } else {
+                if (!timerInterval && timerTimeLeft > 0) {
+                    timerInterval = setInterval(() => {
+                        if (timerTimeLeft > 0) {
+                            timerTimeLeft--;
+                            updateTimerDisplay();
+                        } else {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            timerRunning = false;
+                            startPauseTimerBtn.textContent = '▶';
+                        }
+                    }, 1000);
+                    timerRunning = true;
+                    startPauseTimerBtn.textContent = '▶';
+                }
+            }
+        };
+        resetTimerBtn.onclick = function () {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerTimeLeft = 0;
+            timerRunning = false;
+            updateTimerDisplay();
+            startPauseTimerBtn.textContent = '▶';
+        };
+        updateTimerDisplay();
+
+        // --- Stopwatch Logic ---
+        let stopwatchInterval = null;
+        let stopwatchTime = 0;
+        const stopwatchDisplay = document.getElementById('stopwatchDisplay');
+        const startPauseStopwatchBtn = document.getElementById('startPauseStopwatchBtn');
+        const resetStopwatchBtn = document.getElementById('resetStopwatchBtn');
+        function updateStopwatchDisplay() {
+            const min = String(Math.floor(stopwatchTime / 60)).padStart(2, '0');
+            const sec = String(stopwatchTime % 60).padStart(2, '0');
+            stopwatchDisplay.textContent = `${min}:${sec}`;
+        }
+        let stopwatchRunning = false;
+        startPauseStopwatchBtn.onclick = function () {
+            if (stopwatchRunning) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
+                stopwatchRunning = false;
+                startPauseStopwatchBtn.textContent = '▶';
+            } else {
+                if (!stopwatchInterval) {
+                    stopwatchInterval = setInterval(() => {
+                        stopwatchTime++;
+                        updateStopwatchDisplay();
+                    }, 1000);
+                    stopwatchRunning = true;
+                    startPauseStopwatchBtn.textContent = '▶';
+                }
+            }
+        };
+        resetStopwatchBtn.onclick = function () {
+            clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+            stopwatchTime = 0;
+            stopwatchRunning = false;
+            updateStopwatchDisplay();
+            startPauseStopwatchBtn.textContent = '▶';
+        };
+        updateStopwatchDisplay();
+
+        // --- Add Task Logic ---
+        const taskForm = document.getElementById('taskForm');
+        const taskInput = document.getElementById('taskInput');
+        const taskList = document.getElementById('taskList');
+        const youtubeContainer = document.getElementById('youtubeContainer');
+        const taskError = document.getElementById('taskError');
+
+        function countTaskLinesWithNewTask() {
+            // Simulate adding a new task and count unique offsetTop values (lines)
+            const tasks = Array.from(taskList.children);
+            const dummy = document.createElement('li');
+            dummy.className = 'task-block';
+            dummy.style.visibility = 'hidden';
+            dummy.textContent = 'dummy';
+            taskList.appendChild(dummy);
+            const allTasks = Array.from(taskList.children);
+            const lineTops = new Set();
+            allTasks.forEach(task => lineTops.add(task.offsetTop));
+            dummy.remove();
+            return lineTops.size;
+        }
+
+        function hasSpaceForNewTask() {
+            const tasks = Array.from(taskList.children);
+            if (tasks.length === 0) return true;
+
+            // Get the current line count
+            const currentLines = new Set(tasks.map(task => task.offsetTop)).size;
+            if (currentLines >= 3) {
+                // Check if the last line has enough space
+                const lastLineTasks = tasks.filter(task => task.offsetTop === tasks[tasks.length - 1].offsetTop);
+                const lastLineWidth = lastLineTasks.reduce((width, task) => width + task.offsetWidth + 12, 0); // 12px for gap
+                return lastLineWidth + 200 <= taskList.offsetWidth; // 200px is an estimate for new task width
+            }
+            return true;
+        }
+
+        function updateYoutubeMargin() {
+            // Estimate number of lines by measuring the offsetTop of the last task
+            const tasks = Array.from(taskList.children);
+            if (tasks.length === 0) {
+                youtubeContainer.style.marginTop = '0px';
+                taskError.style.display = 'none';
+                return;
+            }
+            let lines = 1;
+            let lastTop = tasks[0].offsetTop;
+            for (let i = 1; i < tasks.length; i++) {
+                if (tasks[i].offsetTop > lastTop) {
+                    lines++;
+                    lastTop = tasks[i].offsetTop;
+                }
+            }
+            if (lines > 3) lines = 3;
+            youtubeContainer.style.marginTop = ((lines - 1)) + 'px';
+            // Hide error if now allowed
+            if (lines <= 3) taskError.style.display = 'none';
+        }
+
+        taskForm.onsubmit = function (e) {
+            e.preventDefault();
+            // Check if there's space for a new task
+            if (!hasSpaceForNewTask()) {
+                taskError.style.display = 'inline';
+                return;
+            }
+            const value = taskInput.value.trim();
+            if (value) {
+                const li = document.createElement('li');
+                li.className = 'task-block';
+                li.textContent = value;
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-task-btn';
+                delBtn.textContent = '×';
+                delBtn.onclick = function () {
+                    li.remove();
+                    updateYoutubeMargin();
+                    // Hide error if now allowed
+                    if (countTaskLinesWithNewTask() <= 3) taskError.style.display = 'none';
+                };
+                li.appendChild(delBtn);
+                taskList.appendChild(li);
+                taskInput.value = '';
+                updateYoutubeMargin();
+            }
+        };
+        // Update margin on load and when tasks are removed
+        window.addEventListener('DOMContentLoaded', updateYoutubeMargin);
+        window.addEventListener('resize', updateYoutubeMargin);
+
+        // Video Slider Logic
+        const videoSlides = document.querySelector('.video-slides');
+        const dots = document.querySelectorAll('.slider-dot');
+        const prevBtn = document.querySelector('.slider-prev');
+        const nextBtn = document.querySelector('.slider-next');
+        let currentSlide = 0;
+
+        function updateSlider() {
+            videoSlides.style.transform = `translateX(-${currentSlide * 33.333}%)`;
+            // Update dots to reflect current position
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+            // Update arrow visibility
+            prevBtn.style.opacity = currentSlide === 0 ? '0' : '1';
+            nextBtn.style.opacity = currentSlide === 2 ? '0' : '1';
+            // Disable pointer events when hidden
+            prevBtn.style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
+            nextBtn.style.pointerEvents = currentSlide === 2 ? 'none' : 'auto';
+        }
+
+        function nextSlide() {
+            if (currentSlide < 2) {  // Only move if not at last slide
+                currentSlide++;
+                updateSlider();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {  // Only move if not at first slide
+                currentSlide--;
+                updateSlider();
+            }
+        }
+
+        // Touch events for swipe
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        videoSlides.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        videoSlides.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextSlide(); // Swipe left = next video
+            } else if (touchEndX > touchStartX + swipeThreshold) {
+                prevSlide(); // Swipe right = previous video
+            }
+        }
+
+        // Button click events
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        // Dot click events
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                updateSlider();
+            });
+        });
+
+        // Auto-advance slides every 30 seconds
+        let autoAdvanceInterval = setInterval(() => {
+            if (currentSlide < 2) {  // Only auto-advance if not at last slide
+                nextSlide();
+            }
+        }, 30000);
+
+        // Pause auto-advance when user interacts
+        function pauseAutoAdvance() {
+            clearInterval(autoAdvanceInterval);
+            // Resume after 30 seconds of no interaction
+            setTimeout(() => {
+                autoAdvanceInterval = setInterval(() => {
+                    if (currentSlide < 2) {  // Only auto-advance if not at last slide
+                        nextSlide();
+                    }
+                }, 30000);
+            }, 30000);
+        }
+
+        // Add interaction listeners
+        prevBtn.addEventListener('click', pauseAutoAdvance);
+        nextBtn.addEventListener('click', pauseAutoAdvance);
+        dots.forEach(dot => dot.addEventListener('click', pauseAutoAdvance));
+        videoSlides.addEventListener(chspauseAutoAdvance);
+    </script>
+</body>
+
+</html>
