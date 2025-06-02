@@ -1436,32 +1436,6 @@
                 updateSlider();
             });
         });
-
-        // Auto-advance slides every 30 seconds
-        let autoAdvanceInterval = setInterval(() => {
-            if (currentSlide < 2) {  // Only auto-advance if not at last slide
-                nextSlide();
-            }
-        }, 30000);
-
-        // Pause auto-advance when user interacts
-        function pauseAutoAdvance() {
-            clearInterval(autoAdvanceInterval);
-            // Resume after 30 seconds of no interaction
-            setTimeout(() => {
-                autoAdvanceInterval = setInterval(() => {
-                    if (currentSlide < 2) {  // Only auto-advance if not at last slide
-                        nextSlide();
-                    }
-                }, 30000);
-            }, 30000);
-        }
-
-        // Add interaction listeners
-        prevBtn.addEventListener('click', pauseAutoAdvance);
-        nextBtn.addEventListener('click', pauseAutoAdvance);
-        dots.forEach(dot => dot.addEventListener('click', pauseAutoAdvance));
-        videoSlides.addEventListener(chspauseAutoAdvance);
     </script>
 </body>
 
