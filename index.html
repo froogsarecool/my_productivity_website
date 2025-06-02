@@ -310,6 +310,7 @@
             justify-content: flex-start;
             position: relative;
             min-height: 350px;
+            padding-top: 0;
         }
 
         .timer-controls,
@@ -327,6 +328,7 @@
             display: flex;
             gap: 8px;
             margin-bottom: 12px;
+            margin-top: 50px;
         }
 
         #taskList {
@@ -466,6 +468,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: 60px;
         }
 
         .ts-switcher-row {
@@ -544,6 +547,7 @@
             transition: margin-top 0.2s;
             margin-bottom: 16px;
             overflow: hidden;
+            margin-top: 40px;
         }
 
         .video-slider {
@@ -674,7 +678,6 @@
                 </div>
             </div>
             <div class="right-bottom" id="addTaskSection">
-                <h3>Add Task</h3>
                 <form id="taskForm" style="position: relative; display: flex; align-items: center; gap: 8px;">
                     <input type="text" id="taskInput" placeholder="New task... (30 letter max)" maxlength="30" required>
                     <button type="submit">Add</button>
@@ -1373,7 +1376,7 @@
         const dots = document.querySelectorAll('.slider-dot');
         const prevBtn = document.querySelector('.slider-prev');
         const nextBtn = document.querySelector('.slider-next');
-        let currentSlide = 0;
+        let currentSlide = 1;  // Changed from 0 to 1 to start on middle video
 
         function updateSlider() {
             videoSlides.style.transform = `translateX(-${currentSlide * 33.333}%)`;
@@ -1388,6 +1391,9 @@
             prevBtn.style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
             nextBtn.style.pointerEvents = currentSlide === 2 ? 'none' : 'auto';
         }
+
+        // Initialize slider position
+        updateSlider();
 
         function nextSlide() {
             if (currentSlide < 2) {  // Only move if not at last slide
